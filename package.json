@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "isomorphic-fetch": "^2.2.1",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
     "react-scripts": "1.0.17"
@@ -14,8 +15,12 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "enzyme": "^3.2.0",
     "enzyme-adapter-react-16": "^1.1.0",
     "react-addons-test-utils": "^15.6.2"
+=======
+    "react-test-renderer": "^16.1.1"
+>>>>>>> hackernews-v3
   }
 }
