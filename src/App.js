@@ -1,19 +1,36 @@
+<<<<<<< HEAD
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import fetch from 'isomorphic-fetch';
 import { sortBy } from 'lodash';
 import "./App.css";
+=======
+import React, { Component } from 'react';
+import fetch from 'isomorphic-fetch';
+import { sortBy } from 'lodash';
+import classNames from 'classnames';
+import './App.css';
+>>>>>>> hackernews-v4
 
-const DEFAULT_QUERY = "redux";
-const PATH_BASE = "https://hn.algolia.com/api/v1";
-const PATH_SEARCH = "/search";
-const PARAM_SEARCH = "query=";
+const DEFAULT_QUERY = 'redux';
+const DEFAULT_HPP = '100';
+
+<<<<<<< HEAD
+const SORTS = {
+  NONE: list => list,
+  TITLE: list => sortBy(list, 'title'),
+  AUTHOR: list => sortBy(list, 'author'),
+  COMMENTS: list => sortBy(list, 'num_comments').reverse(),
+  POINTS: list => sortBy(list, 'points').reverse(),
+};
+
+=======
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
-
-
-const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`;
-const DEFAULT_HPP = '100';
+>>>>>>> hackernews-v4
 
 const SORTS = {
   NONE: list => list,
@@ -23,9 +40,26 @@ const SORTS = {
   POINTS: list => sortBy(list, 'points').reverse(),
 };
 
+const updateSearchTopStoriesState = (hits, page) => (prevState) => {
+  const { searchKey, results } = prevState;
 
-const isSearched = searchTerm => item =>
-  item.title.toLowerCase().includes(searchTerm.toLowerCase());
+  const oldHits = results && results[searchKey]
+    ? results[searchKey].hits
+    : [];
+
+  const updatedHits = [
+    ...oldHits,
+    ...hits
+  ];
+
+  return {
+    results: {
+      ...results,
+      [searchKey]: { hits: updatedHits, page }
+    },
+    isLoading: false
+  };
+};
 
 class App extends Component {
   constructor(props) {
@@ -34,24 +68,61 @@ class App extends Component {
     this.state = {
       results: null,
       searchKey: '',
+<<<<<<< HEAD
       isLoading: false,
       searchTerm: DEFAULT_QUERY
+=======
+      searchTerm: DEFAULT_QUERY,
+      error: null,
+      isLoading: false,
+>>>>>>> hackernews-v4
     };
 
+    this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
   }
+
+  needsToSearchTopStories(searchTerm) {
+    return !this.state.results[searchTerm];
+  }
+
+  setSearchTopStories(result) {
+    const { hits, page } = result;
+    this.setState(updateSearchTopStoriesState(hits, page));
+  }
+
+  fetchSearchTopStories(searchTerm, page = 0) {
+    this.setState({ isLoading: true });
+
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
+      .catch(e => this.setState({ error: e }));
+  }
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
+    this.fetchSearchTopStories(searchTerm);
+  }
+
   onSearchChange(event) {
     this.setState({ searchTerm: event.target.value });
   }
 
-  onSearchSubmit() {
+  onSearchSubmit(event) {
     const { searchTerm } = this.state;
-    this.setState({ searchKey: searchTerm });    
-    this.fetchSearchTopStories(searchTerm);
+    this.setState({ searchKey: searchTerm });
+
+    if (this.needsToSearchTopStories(searchTerm)) {
+      this.fetchSearchTopStories(searchTerm);
+    }
+
+    event.preventDefault();
   }
 
   onDismiss(id) {
@@ -69,6 +140,7 @@ class App extends Component {
     });
   }
 
+<<<<<<< HEAD
   setSearchTopStories(result) {
     const { hits, page } = result;
     const { searchKey, results } = this.state;
@@ -107,12 +179,17 @@ class App extends Component {
     this.fetchSearchTopStories(searchTerm);
   }
 
+=======
+>>>>>>> hackernews-v4
   render() {
-    console.log(this.state);
     const {
       searchTerm,
       results,
       searchKey,
+<<<<<<< HEAD
+=======
+      error,
+>>>>>>> hackernews-v4
       isLoading
     } = this.state;
 
@@ -128,10 +205,6 @@ class App extends Component {
       results[searchKey].hits
     ) || [];
 
-    if (!results) {
-      return null;
-    }
-
     return (
       <div className="page">
         <div className="interactions">
@@ -143,6 +216,7 @@ class App extends Component {
             Search
           </Search>
         </div>
+<<<<<<< HEAD
         {
           results && 
           <Table
@@ -153,19 +227,34 @@ class App extends Component {
       }
       <div className="interactions">
       <ButtonWithLoading
+=======
+        { error
+          ? <div className="interactions">
+            <p>Something went wrong.</p>
+          </div>
+          : <Table
+            list={list}
+            onDismiss={this.onDismiss}
+          />
+        }
+        <div className="interactions">
+          <ButtonWithLoading
+>>>>>>> hackernews-v4
             isLoading={isLoading}
             onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
             More
           </ButtonWithLoading>
+<<<<<<< HEAD
 
+=======
+>>>>>>> hackernews-v4
         </div>
       </div>
-        
-      
     );
   }
 }
 
+<<<<<<< HEAD
 
 class Search extends Component {
   componentDidMount() {
@@ -216,11 +305,131 @@ const Table = ({ list, onDismiss }) => (
             Dismiss
           </Button>
         </span>
-      </div>
-    ))}
-  </div>
-);
+=======
+const Search = ({
+  value,
+  onChange,
+  onSubmit,
+  children
+}) =>
+  <form onSubmit={onSubmit}>
+    <input
+      type="text"
+      value={value}
+      onChange={onChange}
+    />
+    <button type="submit">
+      {children}
+    </button>
+  </form>
 
+class Table extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      sortKey: 'NONE',
+      isSortReverse: false,
+    };
+
+    this.onSort = this.onSort.bind(this);
+  }
+
+  onSort(sortKey) {
+    const isSortReverse = this.state.sortKey === sortKey && !this.state.isSortReverse;
+    this.setState({ sortKey, isSortReverse });
+  }
+
+  render() {
+    const {
+      list,
+      onDismiss
+    } = this.props;
+
+    const {
+      sortKey,
+      isSortReverse,
+    } = this.state;
+
+    const sortedList = SORTS[sortKey](list);
+    const reverseSortedList = isSortReverse
+      ? sortedList.reverse()
+      : sortedList;
+
+    return(
+      <div className="table">
+        <div className="table-header">
+          <span style={{ width: '40%' }}>
+            <Sort
+              sortKey={'TITLE'}
+              onSort={this.onSort}
+              activeSortKey={sortKey}
+            >
+              Title
+            </Sort>
+          </span>
+          <span style={{ width: '30%' }}>
+            <Sort
+              sortKey={'AUTHOR'}
+              onSort={this.onSort}
+              activeSortKey={sortKey}
+            >
+              Author
+            </Sort>
+          </span>
+          <span style={{ width: '10%' }}>
+            <Sort
+              sortKey={'COMMENTS'}
+              onSort={this.onSort}
+              activeSortKey={sortKey}
+            >
+              Comments
+            </Sort>
+          </span>
+          <span style={{ width: '10%' }}>
+            <Sort
+              sortKey={'POINTS'}
+              onSort={this.onSort}
+              activeSortKey={sortKey}
+            >
+              Points
+            </Sort>
+          </span>
+          <span style={{ width: '10%' }}>
+            Archive
+          </span>
+        </div>
+        {reverseSortedList.map(item =>
+          <div key={item.objectID} className="table-row">
+            <span style={{ width: '40%' }}>
+              <a href={item.url}>{item.title}</a>
+            </span>
+            <span style={{ width: '30%' }}>
+              {item.author}
+            </span>
+            <span style={{ width: '10%' }}>
+              {item.num_comments}
+            </span>
+            <span style={{ width: '10%' }}>
+              {item.points}
+            </span>
+            <span style={{ width: '10%' }}>
+              <Button
+                onClick={() => onDismiss(item.objectID)}
+                className="button-inline"
+              >
+                Dismiss
+              </Button>
+            </span>
+          </div>
+        )}
+>>>>>>> hackernews-v4
+      </div>
+    );
+  }
+}
+
+<<<<<<< HEAD
 Table.propTypes = {
   list: PropTypes.array.isRequired,
   onDismiss: PropTypes.func.isRequired,
@@ -228,10 +437,39 @@ Table.propTypes = {
 
 const Button = ({ onClick, className = "", children }) => (
   <button onClick={onClick} className={className} type="button">
+=======
+const Sort = ({
+  sortKey,
+  activeSortKey,
+  onSort,
+  children
+}) => {
+  const sortClass = classNames(
+    'button-inline',
+    { 'button-active': sortKey === activeSortKey }
+  );
+
+  return (
+    <Button
+      onClick={() => onSort(sortKey)}
+      className={sortClass}
+    >
+      {children}
+    </Button>
+  );
+}
+
+const Button = ({ onClick, className = '', children }) =>
+  <button
+    onClick={onClick}
+    className={className}
+    type="button"
+  >
+>>>>>>> hackernews-v4
     {children}
   </button>
-);
 
+<<<<<<< HEAD
 Button.propTypes = {
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
@@ -251,7 +489,17 @@ isLoading
   
 const ButtonWithLoading = withLoading(Button);
 
+=======
+const Loading = () =>
+  <div>Loading ...</div>
 
+const withLoading = (Component) => ({ isLoading, ...rest }) =>
+  isLoading
+    ? <Loading />
+    : <Component { ...rest } />
+>>>>>>> hackernews-v4
+
+const ButtonWithLoading = withLoading(Button);
 
 export {
   Button,
@@ -259,4 +507,8 @@ export {
   Table,
 };
 
+<<<<<<< HEAD
 export default App;
+=======
+export default App;
+>>>>>>> hackernews-v4
