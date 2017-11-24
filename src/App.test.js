@@ -2,8 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import renderer from 'react-test-renderer';
 import fetch from "isomorphic-fetch";
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import App, { Search, Button, Table } from './App';
 
+
+Enzyme.configure({ adapter: new Adapter() });
 
 describe("App", () => {
   it("renders without crashing", () => {
@@ -64,6 +68,14 @@ describe('Search', () => {
           ],
         };
       
+  it('shows two items in list', () => {
+    const element = shallow(
+      <Table { ...props } />
+    );
+
+    expect(element.find('.table-row').length).toBe(2);
+  });
+
         it('renders without crashing', () => {
           const div = document.createElement('div');
           ReactDOM.render(<Table { ...props } />, div);

@@ -1,4 +1,7 @@
 import React, { Component } from "react";
+import PropTypes from 'prop-types';
+import fetch from 'isomorphic-fetch';
+import { sortBy } from 'lodash';
 import "./App.css";
 
 const DEFAULT_QUERY = "redux";
@@ -12,6 +15,14 @@ const PARAM_HPP = 'hitsPerPage=';
 const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`;
 const DEFAULT_HPP = '100';
 
+const SORTS = {
+  NONE: list => list,
+  TITLE: list => sortBy(list, 'title'),
+  AUTHOR: list => sortBy(list, 'author'),
+  COMMENTS: list => sortBy(list, 'num_comments').reverse(),
+  POINTS: list => sortBy(list, 'points').reverse(),
+};
+
 
 const isSearched = searchTerm => item =>
   item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -23,7 +34,7 @@ class App extends Component {
     this.state = {
       results: null,
       searchKey: '',
-
+      isLoading: false,
       searchTerm: DEFAULT_QUERY
     };
 
@@ -75,12 +86,14 @@ class App extends Component {
       results: {
         ...results,
         [searchKey]: { hits: updatedHits, page }
-      }
+      },
+      isLoading: false
     });
   }
 
 
   fetchSearchTopStories(searchTerm, page = 0) {
+    this.setState({ isLoading: true });
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
 
       .then(response => response.json())
@@ -99,7 +112,8 @@ class App extends Component {
     const {
       searchTerm,
       results,
-      searchKey
+      searchKey,
+      isLoading
     } = this.state;
 
     const page = (
@@ -138,10 +152,12 @@ class App extends Component {
 
       }
       <div className="interactions">
-      <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-
+      <ButtonWithLoading
+            isLoading={isLoading}
+            onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
             More
-          </Button>
+          </ButtonWithLoading>
+
         </div>
       </div>
         
@@ -150,12 +166,37 @@ class App extends Component {
   }
 }
 
-const Search = ({ value, onChange, onSubmit, children }) => (
+
+class Search extends Component {
+  componentDidMount() {
+    this.input.focus();
+  }
+  
+  render() {
+    const {
+      value,
+      onChange,
+      onSubmit,
+      children
+    } = this.props;
+    let input;
+    return (
   <form onSubmit={onSubmit}>
-    <input type="text" value={value} onChange={onChange} />
+    <input type="text" value={value} 
+    onChange={onChange} 
+    ref={(node) => { this.input = node; }}
+    />
     <button type="submit">{children}</button>
   </form>
-);
+    );
+  }
+}
+
+Search.propTypes = {
+  onSubmit: PropTypes.func,
+
+}
+
 
 const Table = ({ list, onDismiss }) => (
   <div className="table">
@@ -180,13 +221,36 @@ const Table = ({ list, onDismiss }) => (
   </div>
 );
 
+Table.propTypes = {
+  list: PropTypes.array.isRequired,
+  onDismiss: PropTypes.func.isRequired,
+};
+
 const Button = ({ onClick, className = "", children }) => (
   <button onClick={onClick} className={className} type="button">
     {children}
   </button>
 );
 
-export default App;
+Button.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired,
+};
+
+
+const Loading = () =>
+<div>Loading ...</div>
+
+const withLoading = (Component) => ({ isLoading, ...rest }) =>
+isLoading
+  ? <Loading />
+  : <Component { ...rest } />
+
+
+  
+const ButtonWithLoading = withLoading(Button);
+
 
 
 export {
@@ -194,3 +258,5 @@ export {
   Search,
   Table,
 };
+
+export default App;
